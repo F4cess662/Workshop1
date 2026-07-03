@@ -5,10 +5,10 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
     <meta
       name="description"
-      content="Wholesale Book Store Management System - Workshop #1 Documentation"
+      content="Book Store Management System - Workshop #1 Documentation"
     />
     <meta name="author" content="Priyaphat" />
-    <title>Wholesale Book Store Management System | Workshop #1</title>
+    <title>Book Store Management System | Workshop #1</title>
     <style>
       * {
         margin: 0;
@@ -335,6 +335,82 @@
         background: #ddccae;
       }
 
+
+      .team-intro {
+        background: var(--cream);
+        border-left: 4px solid var(--terracotta);
+        border-radius: 8px;
+        padding: 16px 20px;
+        margin-bottom: 22px;
+        color: #4a3a2c;
+      }
+
+      .team-grid {
+        display: grid;
+        grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
+        gap: 20px;
+        margin-top: 18px;
+      }
+
+      .team-card {
+        background: var(--cream);
+        border: 1px solid var(--border-soft);
+        border-radius: 12px;
+        padding: 20px;
+        box-shadow: 0 3px 8px rgba(61, 43, 32, 0.08);
+        transition:
+          transform 0.25s ease,
+          box-shadow 0.25s ease;
+      }
+
+      .team-card:hover {
+        transform: translateY(-4px);
+        box-shadow: 0 8px 18px rgba(61, 43, 32, 0.12);
+      }
+
+      .team-id {
+        display: inline-block;
+        font-size: 0.85em;
+        color: #7a6a58;
+        background: var(--cream-light);
+        border: 1px solid var(--border-soft);
+        border-radius: 999px;
+        padding: 4px 10px;
+        margin-bottom: 10px;
+      }
+
+      .team-name {
+        color: var(--brown-dark);
+        font-size: 1.15em;
+        font-weight: 700;
+        margin-bottom: 10px;
+      }
+
+      .team-role {
+        color: white;
+        background: linear-gradient(
+          135deg,
+          var(--terracotta) 0%,
+          var(--terracotta-dark) 100%
+        );
+        border-radius: 999px;
+        display: inline-block;
+        font-size: 0.9em;
+        font-weight: 600;
+        padding: 6px 12px;
+        margin-bottom: 12px;
+      }
+
+      .team-responsibility {
+        padding-left: 20px;
+        margin-top: 8px;
+      }
+
+      .team-responsibility li {
+        color: #4a3a2c;
+        margin-bottom: 7px;
+      }
+
       @media (max-width: 768px) {
         header h1 {
           font-size: 1.8em;
@@ -355,9 +431,9 @@
     <div class="container">
       <header>
         <h1>📚 ระบบร้านขายหนังสือ</h1>
-        <div class="subtitle">Wholesale Book Store Management System</div>
+        <div class="subtitle">Book Store Management System</div>
         <div class="course-info">
-          <strong>Course:</strong> CSI204 - Software Engineering Workshop #1
+          <strong>Course:</strong> CSI204 - Workshop #1
         </div>
       </header>
 
@@ -373,44 +449,86 @@
       </div>
 
       <div class="content-section">
-        <h2>👥 สมาชิกทีม | Team Members</h2>
-        <table class="data-table">
-          <thead>
-            <tr>
-              <th>รหัสนักศึกษา</th>
-              <th>ชื่อ</th>
-              <th>บทบาท</th>
-            </tr>
-          </thead>
-          <tbody>
-            <tr>
-              <td>67077452</td>
-              <td>ปรียาภัทร มาลี</td>
-              <td>หน้ารายละเอียดและรายการโปรด</td>
-            </tr>
-            <tr>
-              <td>67082228</td>
-              <td>นางสาวอังศุมาลี สีหนา</td>
-              <td>ตะกร้า ชำระเงิน แสดงสถานะพัสดุฝั่งลูกค้า</td>
-            </tr>
-            <tr>
-              <td>67090695</td>
-              <td>นายณชพัฒน์ สัมฤทธิ์ยากรณ์</td>
-              <td>จัดการคลังสินค้า</td>
-            </tr>
-            <tr>
-              <td>67149922</td>
-              <td>นายสุทธิพงศ์ สัมฤทธิ์</td>
-              <td>หน้าแดชบอร์ด จัดการสถานะออเดอร์และสถานะพัสดุหลังบ้าน</td>
-            </tr>
-            <tr>
-              <td>67154349</td>
-              <td>นางสาวชิดชนก จำปาดง</td>
-              <td>หน้าแรกรายการสินค้าและระบบค้นหา</td>
-            </tr>
-          </tbody>
-        </table>
-      </div>
+  <h2>👥 สมาชิกทีม | Team Members</h2>
+
+  <table class="data-table">
+    <thead>
+      <tr>
+        <th>รหัสนักศึกษา</th>
+        <th>ชื่อ</th>
+        <th>บทบาทหลัก</th>
+        <th>หน้าที่รับผิดชอบ</th>
+      </tr>
+    </thead>
+    <tbody>
+      <tr>
+        <td>67077452</td>
+        <td>ปรียาภัทร มาลี</td>
+        <td>รับผิดชอบระบบบัญชีผู้ใช้และข้อมูลสมาชิก</td>
+        <td>
+          <ul>
+            <li>พัฒนาระบบสมัครสมาชิกและเข้าสู่ระบบ</li>
+            <li>จัดการข้อมูลโปรไฟล์ ชื่อผู้ใช้ รหัสผ่าน และที่อยู่จัดส่ง</li>
+            <li>ร่วมออกแบบฐานข้อมูล พัฒนา Frontend, Backend/API ทดสอบระบบ และจัดทำเอกสารที่เกี่ยวข้อง</li>
+          </ul>
+        </td>
+      </tr>
+
+      <tr>
+        <td>67082228</td>
+        <td>นางสาวอังศุมาลี สีหนา</td>
+        <td>รับผิดชอบระบบตะกร้าสินค้าและคำสั่งซื้อ</td>
+        <td>
+          <ul>
+            <li>พัฒนาการเพิ่มสินค้า ลบสินค้า และจัดการจำนวนสินค้าในตะกร้า</li>
+            <li>พัฒนาการเลือกรูปแบบการจัดส่ง การคำนวณยอดชำระ และการสร้างคำสั่งซื้อ</li>
+            <li>ร่วมออกแบบฐานข้อมูล พัฒนา Frontend, Backend/API ทดสอบระบบ และจัดทำเอกสารที่เกี่ยวข้อง</li>
+          </ul>
+        </td>
+      </tr>
+
+      <tr>
+        <td>67090695</td>
+        <td>นายณชพัฒน์ สัมฤทธิ์ยากรณ์</td>
+        <td>ผู้รับผิดชอบระบบชำระเงิน สต็อก และสถานะสินค้า</td>
+        <td>
+          <ul>
+            <li>พัฒนาระบบชำระเงินผ่านเลขบัญชีและการแนบหลักฐานการชำระเงิน</li>
+            <li>จัดการสถานะสินค้า เช่น “ว่าง” “จองสินค้า” และ “ขายแล้ว”</li>
+            <li>พัฒนาระบบตัดสต็อกและคืนสต็อก เมื่อคำสั่งซื้อถูกยกเลิกหรือหลักฐานไม่ถูกต้อง</li>
+          </ul>
+        </td>
+      </tr>
+
+      <tr>
+        <td>67149922</td>
+        <td>นายสุทธิพงศ์ สัมฤทธิ์</td>
+        <td>ผู้รับผิดชอบระบบพนักงาน ผู้ดูแลระบบ และแดชบอร์ด</td>
+        <td>
+          <ul>
+            <li>พัฒนาระบบตรวจสอบคำสั่งซื้อ ตรวจสอบการชำระเงิน และอัปเดตสถานะการจัดส่ง</li>
+            <li>พัฒนาระบบจัดการพนักงาน จัดการสินค้า และจัดการสต็อก</li>
+            <li>พัฒนาแดชบอร์ดแสดงยอดคำสั่งซื้อ ยอดขาย สถานะการจัดส่ง และหมวดหมู่หนังสือที่ขายได้</li>
+          </ul>
+        </td>
+      </tr>
+
+      <tr>
+        <td>67154349</td>
+        <td>นางสาวชิดชนก จำปาดง</td>
+        <td>รับผิดชอบระบบสินค้า การค้นหา และรายการโปรด</td>
+        <td>
+          <ul>
+            <li>พัฒนาหน้ารวมสินค้าและหน้ารายละเอียดหนังสือ</li>
+            <li>พัฒนาระบบค้นหาสินค้าและแสดงจำนวนสินค้าคงเหลือ</li>
+            <li>พัฒนาระบบบันทึกรายการโปรดและแนะนำหมวดหนังสือที่เกี่ยวข้อง</li>
+          </ul>
+        </td>
+      </tr>
+    </tbody>
+  </table>
+</div>
+
 
       <div class="content-section">
         <h2>🎯 วัตถุประสงค์โครงการ | Objectives</h2>
