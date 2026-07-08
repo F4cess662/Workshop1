@@ -6,7 +6,10 @@ document.addEventListener('DOMContentLoaded', () => {
     `<a class="category-pill" href="products.html">${BookApp.escapeHtml(category)}</a>`
   ).join('');
 
-  const featured = products.slice(0,4).map(BookApp.bookCard).join('');
+  const featured = [...products]
+    .sort((a, b) => (Number(b.sold) || 0) - (Number(a.sold) || 0))
+    .map(BookApp.bookCard)
+    .join('');
   document.getElementById('featuredBooks').innerHTML = featured;
   BookApp.bindGlobalActions(document.getElementById('featuredBooks'));
 });

@@ -1,4 +1,5 @@
 document.addEventListener('DOMContentLoaded', () => {
+  if (!BookApp.requireLogin()) return;
   const grid = document.getElementById('favGrid');
   function render(){
     const items = BookApp.products().filter(p=>BookApp.favorites().includes(p.id));

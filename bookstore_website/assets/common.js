@@ -294,20 +294,29 @@
   }
   function bookCard(product) {
     const fav = favorites().includes(product.id);
+    const outOfStock = Number(product.stock) <= 0;
+    const stockBadge = outOfStock
+      ? '<span class="badge red">สินค้าหมด</span>'
+      : `<span class="badge ${product.stock < 100 ? 'red' : 'green'}">คงเหลือ ${product.stock} เล่ม</span>`;
+    const coverStockBadge = outOfStock ? '<span class="cover-stock-badge">สินค้าหมด</span>' : '';
+    const cartButton = outOfStock
+      ? `<button class="btn btn-primary btn-small" type="button" disabled>${icon('cart')} สินค้าหมด</button>`
+      : `<button class="btn btn-primary btn-small" data-cart="${product.id}">${icon('cart')} ใส่ตะกร้า</button>`;
     return `
-      <article class="book-card" data-id="${product.id}" data-category="${escapeHtml(product.category)}">
+      <article class="book-card ${outOfStock ? 'is-out-of-stock' : ''}" data-id="${product.id}" data-category="${escapeHtml(product.category)}">
         <button class="icon-btn fav-btn ${fav ? 'active' : ''}" data-fav="${product.id}" title="บันทึกรายการโปรด" aria-label="บันทึกรายการโปรด">${icon(fav ? 'heartFill' : 'heart')}</button>
         <a href="book-detail.html?id=${product.id}" class="book-cover ${product.cover}">
+          ${coverStockBadge}
           <strong class="cover-title">${escapeHtml(product.title)}</strong>
         </a>
         <div class="book-info">
-          <div class="pill-row"><span class="badge orange">${escapeHtml(product.category)}</span><span class="badge ${product.stock < 100 ? 'red' : 'green'}">คงเหลือ ${product.stock} เล่ม</span></div>
+          <div class="pill-row"><span class="badge orange">${escapeHtml(product.category)}</span>${stockBadge}</div>
           <h3><a href="book-detail.html?id=${product.id}">${escapeHtml(product.title)}</a></h3>
           <p>${escapeHtml(product.author)}</p>
           <div class="price-row"><span class="price">${formatTHB(product.price)}</span><span class="helper">ขายแล้ว ${product.sold}</span></div>
           <div class="book-actions">
             <a class="btn btn-secondary btn-small" href="book-detail.html?id=${product.id}">รายละเอียด</a>
-            <button class="btn btn-primary btn-small" data-cart="${product.id}">${icon('cart')} ใส่ตะกร้า</button>
+            ${cartButton}
           </div>
         </div>
       </article>`;

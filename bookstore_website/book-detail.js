@@ -8,6 +8,13 @@ document.addEventListener('DOMContentLoaded', () => {
   }
   const related = BookApp.products().filter(p=>p.category===product.category && p.id!==product.id).slice(0,4);
   const favActive = BookApp.favorites().includes(product.id);
+  const outOfStock = Number(product.stock) <= 0;
+  const stockText = outOfStock
+    ? '<span class="badge red">สินค้าหมด</span>'
+    : `<span>คงเหลือ <strong>${product.stock}</strong> เล่ม</span>`;
+  const cartButton = outOfStock
+    ? `<button class="btn btn-primary" type="button" disabled>${BookApp.icon('cart')} สินค้าหมด</button>`
+    : `<button class="btn btn-primary" data-cart="${product.id}">${BookApp.icon('cart')} เพิ่มลงตะกร้า</button>`;
   root.innerHTML = `
     <div class="detail-layout">
       <div class="book-cover detail-cover ${product.cover}"><span class="cover-icon">${BookApp.icon('book')}</span><strong class="cover-title">${BookApp.escapeHtml(product.title)}</strong></div>
@@ -20,7 +27,7 @@ document.addEventListener('DOMContentLoaded', () => {
         <div class="stock-stats">
           <span>ขายแล้ว <strong>${product.sold}</strong> เล่ม</span>
           <span class="divider">|</span>
-          <span>คงเหลือ <strong>${product.stock}</strong> เล่ม</span>
+          ${stockText}
         </div>
         <p class="detail-desc">${BookApp.escapeHtml(product.desc)}</p>
         <div class="notice">แนะนำหนังสือหมวดเดียวกันไว้ด้านล่าง เพื่อช่วยเลือกเล่มที่ใกล้เคียงกัน</div>
@@ -28,7 +35,7 @@ document.addEventListener('DOMContentLoaded', () => {
           <div><span class="helper">ราคาเล่มละ</span><div class="price" style="font-size:34px">${BookApp.formatTHB(product.price)}</div></div>
           <div class="pill-row">
             <button class="btn btn-secondary" id="favBtn">${BookApp.icon(favActive?'heartFill':'heart')} ${favActive?'อยู่ในรายการโปรด':'บันทึกรายการโปรด'}</button>
-            <button class="btn btn-primary" data-cart="${product.id}">${BookApp.icon('cart')} เพิ่มลงตะกร้า</button>
+            ${cartButton}
           </div>
         </div>
       </article>
@@ -36,6 +43,7 @@ document.addEventListener('DOMContentLoaded', () => {
     <div class="section-title recommend-title"><div><h2>หนังสือที่เกี่ยวข้อง</h2><p>หมวด ${BookApp.escapeHtml(product.category)}</p></div></div>
     <div class="book-grid">${related.length ? related.map(BookApp.bookCard).join('') : '<div class="empty-state" style="grid-column:1/-1">ยังไม่มีหนังสือที่เกี่ยวข้อง</div>'}</div>`;
   document.getElementById('favBtn').addEventListener('click', (e)=>{
+    if (!BookApp.requireLogin()) return;
     const active = BookApp.toggleFavorite(product.id);
     e.currentTarget.innerHTML = `${BookApp.icon(active?'heartFill':'heart')} ${active?'อยู่ในรายการโปรด':'บันทึกโปรด'}`;
     BookApp.renderNav();
