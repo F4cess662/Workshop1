@@ -26,7 +26,51 @@
 }
 .mini-cover .cover-icon .svg-icon{width:14px;height:14px}
 .mini-cover .cover-title{font-size:10px}
-.summary-box{position:sticky;top:76px}
+.summary-stack{
+  position:sticky;
+  top:76px;
+  display:grid;
+  gap:12px;
+}
+.cart-shipping-grid{
+  display:grid;
+  gap:10px;
+}
+.shipping-card{
+  cursor:pointer;
+  border:1px solid var(--line);
+}
+.shipping-card strong{
+  display:block;
+  color:var(--brown);
+  margin-bottom:6px;
+}
+.shipping-card .helper{
+  display:grid;
+  gap:2px;
+  margin:0;
+}
+/* แก้ไข: ย้ายกล่องรูปแบบการจัดส่งมาไว้หน้า cart และจัดเลขราคาค่าจัดส่งชิดขวา */
+.shipping-rate{
+  display:grid;
+  grid-template-columns:1fr auto;
+  gap:10px;
+  border-radius:6px;
+  padding:2px 6px;
+}
+.shipping-rate-price{
+  min-width:42px;
+  text-align:right;
+}
+.shipping-rate.active{
+  background:#ffca8e;
+  color:var(--white);
+  font-weight:900;
+}
+.shipping-card.active{
+  border-color:var(--orange);
+  background:#fff4d8;
+}
 .summary-line{
   display:flex;
   justify-content:space-between;
@@ -44,7 +88,7 @@
 }
 @media(max-width:860px){
   .cart-layout{grid-template-columns:1fr}
-  .summary-box{position:static}
+  .summary-stack{position:static}
   .cart-row{grid-template-columns:64px 1fr}
   .cart-actions{grid-column:1/-1}
 }

@@ -8,7 +8,8 @@
     orders: 'bookStore_orders_v2',
     staff: 'bookStore_staff_v2',
     addresses: 'bookStore_addresses_v2',
-    checkoutDraft: 'bookStore_checkoutDraft_v2'
+    checkoutDraft: 'bookStore_checkoutDraft_v2',
+    selectedShipping: 'bookStore_selectedShipping_v2'
   };
 
   const icons = {
@@ -143,13 +144,34 @@
     saveFavorites(fav);
     return fav.includes(id);
   }
-  function shippingOptions() {
+
+  //--------------------------------------------------------------------------------------------//
+  function shippingPriceByQty(qty, rates) {
+    const count = Number(qty) || 0;
+    if (count >= 50) return 0;
+    if (count >= 31) return rates[3];
+    if (count >= 11) return rates[2];
+    if (count >= 4) return rates[1];
+    if (count >= 1) return rates[0];
+    return 0;
+  }
+  function shippingOptions(bookCount = 0) {
+    const standardRates = [45, 70, 110, 160];
+    const expressRates = [65, 100, 150, 220];
+    const activeRateIndex = bookCount >= 50 ? 4 : bookCount >= 31 ? 3 : bookCount >= 11 ? 2 : bookCount >= 4 ? 1 : bookCount >= 1 ? 0 : -1;
+    const shippingDesc = rates => [
+      ['1-3 เล่ม', `${rates[0]} ฿`],
+      ['4-10 เล่ม', `${rates[1]} ฿`],
+      ['11-30 เล่ม', `${rates[2]} ฿`],
+      ['31-49 เล่ม', `${rates[3]} ฿`],
+      ['50 เล่ม', 'ส่งฟรี']
+    ].map(([range, price], index) => `<span class="shipping-rate ${index === activeRateIndex ? 'active' : ''}"><span>${range}</span><span class="shipping-rate-price">${price}</span></span>`).join('');
     return [
-      { id: 'standard', name: 'จัดส่งมาตรฐาน', price: 40, desc: '2-4 วันทำการ' },
-      { id: 'express', name: 'จัดส่งด่วน', price: 70, desc: '1-2 วันทำการ' },
-      { id: 'pickup', name: 'รับเองที่ร้าน', price: 0, desc: 'ไม่มีค่าจัดส่ง' }
+      { id: 'standard', name: 'จัดส่งมาตรฐาน', price: shippingPriceByQty(bookCount, standardRates), desc: shippingDesc(standardRates) },
+      { id: 'express', name: 'จัดส่งด่วน', price: shippingPriceByQty(bookCount, expressRates), desc: shippingDesc(expressRates) }
     ];
   }
+  //--------------------------------------------------------------------------------------------//
   function makeOrder(draft, slipName, slipData, slipType) {
     const current = currentUser();
     const id = 'ORD' + new Date().toISOString().replace(/[-:TZ.]/g, '').slice(0, 12);
