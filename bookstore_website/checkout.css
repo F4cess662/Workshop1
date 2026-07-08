@@ -5,11 +5,11 @@
   gap:18px;
   align-items:start;
 }
-.shipping-card,.address-card{
+.address-card{
   cursor:pointer;
   border:1px solid var(--line);
 }
-.shipping-card.active,.address-card.active{
+.address-card.active{
   border-color:var(--orange);
   background:#fff4d8;
 }
