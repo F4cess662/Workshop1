@@ -20,7 +20,7 @@ function render(filter){
   const root=document.getElementById('staffOrders');
   root.innerHTML=list.length?list.map(o=>{
     const canApprove=o.paymentStatus==='pending' && o.orderStatus!=='cancelled';
-    const canReject=o.orderStatus!=='completed' && o.orderStatus!=='cancelled';
+    const canReject=o.paymentStatus==='pending' && o.orderStatus!=='cancelled';
     const canPack=o.paymentStatus==='approved' && !['shipped','completed','cancelled'].includes(o.orderStatus);
     const canShip=o.paymentStatus==='approved' && !['shipped','completed','cancelled'].includes(o.orderStatus);
     return `<article class="card staff-order">
