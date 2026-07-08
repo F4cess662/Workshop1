@@ -1,0 +1,44 @@
+.home-hero{
+  min-height:290px;
+  display:flex;
+  flex-direction:column;
+  justify-content:center;
+}
+.compact-section{padding-top:28px}
+.compact-title{margin-bottom:10px}
+.category-pills{
+  gap:10px;
+  margin-bottom:8px;
+}
+.category-pill{
+  display:inline-flex;
+  align-items:center;
+  min-height:30px;
+  padding:5px 14px;
+  border:1px solid var(--line);
+  border-radius:999px;
+  background:#fff8e9;
+  color:var(--brown);
+  font-size:12px;
+  font-weight:600;
+}
+.category-pill:hover{
+  background:#fff1d0;
+  border-color:var(--line-strong);
+}
+.feature-list h3{
+  margin:0 0 6px;
+  color:var(--brown);
+  font-size:15px;
+}
+.feature-list p{
+  margin:0;
+  color:var(--muted);
+  line-height:1.6;
+  font-size:13px;
+}
+.feature-list .card{
+  background:transparent;
+  border:0;
+  padding:0;
+}

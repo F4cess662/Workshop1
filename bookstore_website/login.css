@@ -1,0 +1,29 @@
+
+.auth-wrap{
+  display:grid;
+  grid-template-columns:1fr 360px;
+  gap:22px;
+  align-items:stretch;
+}
+.auth-hero{min-height:420px}
+.auth-card{
+  display:flex;
+  flex-direction:column;
+  justify-content:center;
+}
+.auth-card h2{
+  font-size:28px;
+  line-height:1.25;
+  margin:0 0 18px;
+  color:var(--brown);
+}
+.demo-users{
+  display:flex;
+  gap:8px;
+  flex-wrap:wrap;
+  margin:16px 0;
+}
+@media(max-width:900px){
+  .auth-wrap{grid-template-columns:1fr}
+  .auth-hero{min-height:auto}
+}
