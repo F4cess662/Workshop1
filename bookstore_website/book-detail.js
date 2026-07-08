@@ -14,18 +14,20 @@ document.addEventListener('DOMContentLoaded', () => {
       <article class="card detail-panel">
         <div class="detail-meta">
           <span class="badge orange">${BookApp.escapeHtml(product.category)}</span>
-          <span class="badge green">คะแนน ${product.rating}</span>
-          <span class="badge ${product.stock<100?'red':'green'}">คงเหลือ ${product.stock} เล่ม</span>
-          ${BookApp.statusBadge('product', product.status)}
         </div>
         <h1>${BookApp.escapeHtml(product.title)}</h1>
-        <p class="helper">ผู้แต่ง: ${BookApp.escapeHtml(product.author)} · ขายแล้ว ${product.sold} เล่ม</p>
+        <p class="helper">ผู้แต่ง: ${BookApp.escapeHtml(product.author)}</p>
+        <div class="stock-stats">
+          <span>ขายแล้ว <strong>${product.sold}</strong> เล่ม</span>
+          <span class="divider">|</span>
+          <span>คงเหลือ <strong>${product.stock}</strong> เล่ม</span>
+        </div>
         <p class="detail-desc">${BookApp.escapeHtml(product.desc)}</p>
         <div class="notice">แนะนำหนังสือหมวดเดียวกันไว้ด้านล่าง เพื่อช่วยเลือกเล่มที่ใกล้เคียงกัน</div>
         <div class="buy-box">
           <div><span class="helper">ราคาเล่มละ</span><div class="price" style="font-size:34px">${BookApp.formatTHB(product.price)}</div></div>
           <div class="pill-row">
-            <button class="btn btn-secondary" id="favBtn">${BookApp.icon(favActive?'heartFill':'heart')} ${favActive?'อยู่ในรายการโปรด':'บันทึกโปรด'}</button>
+            <button class="btn btn-secondary" id="favBtn">${BookApp.icon(favActive?'heartFill':'heart')} ${favActive?'อยู่ในรายการโปรด':'บันทึกรายการโปรด'}</button>
             <button class="btn btn-primary" data-cart="${product.id}">${BookApp.icon('cart')} เพิ่มลงตะกร้า</button>
           </div>
         </div>

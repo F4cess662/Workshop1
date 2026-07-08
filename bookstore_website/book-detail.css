@@ -30,6 +30,21 @@
   flex-wrap:wrap;
   margin-bottom:14px;
 }
+.stock-stats{
+  display:flex;
+  align-items:center;
+  gap:10px;
+  font-size:14px;
+  color:var(--muted);
+  margin-bottom:16px;
+}
+.stock-stats strong{
+  color:var(--brown);
+  font-weight:600;
+}
+.stock-stats .divider{
+  color:var(--line);
+}
 .detail-desc{
   font-size:15px;
   line-height:1.8;
