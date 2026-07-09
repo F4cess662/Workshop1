@@ -9,11 +9,14 @@ document.addEventListener('DOMContentLoaded', () => {
     const q = search.value.trim().toLowerCase();
     let items = BookApp.products().filter(p => [p.title,p.author,p.category].join(' ').toLowerCase().includes(q));
     if(cat.value !== 'all') items = items.filter(p=>p.category===cat.value);
-    if(stock.value === 'ready') items = items.filter(p=>p.stock>0);
-    if(stock.value === 'low') items = items.filter(p=>p.stock<100);
+    const stockVal = stock ? stock.value : 'all';
+    if(stockVal === 'ready') items = items.filter(p=>p.stock>0);
+    if(stockVal === 'low') items = items.filter(p=>p.stock<100);
     grid.innerHTML = items.length ? items.map(BookApp.bookCard).join('') : `<div class="empty-state" style="grid-column:1/-1"><div class="icon">${BookApp.icon('search')}</div><h3>ไม่พบหนังสือ</h3><p>ลองเปลี่ยนคำค้นหาหรือหมวดหมู่</p></div>`;
     BookApp.bindGlobalActions(grid);
   }
-  [search,cat,stock].forEach(el=>el.addEventListener('input',render));
+  const inputs = [search, cat];
+  if(stock) inputs.push(stock);
+  inputs.forEach(el=>el.addEventListener('input',render));
   render();
 });

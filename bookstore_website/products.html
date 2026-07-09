@@ -16,11 +16,7 @@
         <div class="card toolbar">
           <input class="input" id="searchInput" placeholder="ค้นหาชื่อหนังสือ / ผู้แต่ง / หมวดหมู่">
           <select class="select" id="categorySelect"><option value="all">ทุกหมวดหมู่</option></select>
-          <select class="select" id="stockSelect">
-            <option value="all">ทุกสถานะ</option>
-            <option value="ready">พร้อมขาย</option>
-            <option value="low">ใกล้หมด</option>
-          </select>
+          <!-- Stock filter removed from UI; filtering still works via code defaults -->
         </div>
         <div class="book-grid products-grid" id="productsGrid"></div>
       </div>
