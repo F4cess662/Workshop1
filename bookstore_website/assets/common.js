@@ -115,17 +115,19 @@
   function cartDetailed() { return cart().map(item => ({ ...item, product: findProduct(item.id) })).filter(item => item.product); }
   function cartTotal() { return cartDetailed().reduce((sum, item) => sum + item.product.price * item.qty, 0); }
   function productStockStatus(stock) { return stock <= 0 ? 'sold' : 'available'; }
+  function availableStock(product) { return Math.max(0, (product?.stock || 0) - (product?.reserved || 0)); }
   function statusLabel(type, value) { return statusText[type]?.[value] || value || '-'; }
   function statusBadge(type, value) { return `<span class="badge ${statusTone[value] || 'gray'}">${statusLabel(type, value)}</span>`; }
 
   function addToCart(id, qty = 1) {
     const product = findProduct(id);
     if (!product) { toast('ไม่พบสินค้านี้'); return false; }
-    if (product.stock <= 0) { toast('สินค้าหมดแล้ว'); return false; }
+    const avail = availableStock(product);
+    if (avail <= 0) { toast('สินค้าหมดแล้ว'); return false; }
     const items = cart();
     const found = items.find(i => i.id === id);
     const nextQty = (found?.qty || 0) + qty;
-    if (nextQty > product.stock) { toast('จำนวนที่เลือกมากกว่าสต็อก'); return false; }
+    if (nextQty > avail) { toast('จำนวนที่เลือกมากกว่าสต็อก'); return false; }
     if (found) found.qty = nextQty; else items.push({ id, qty });
     saveCart(items);
     toast('เพิ่มลงตะกร้าแล้ว');
@@ -133,7 +135,8 @@
   }
   function changeCartQty(id, qty) {
     const product = findProduct(id);
-    const next = Math.max(1, Math.min(Number(qty) || 1, product?.stock || 1));
+    const avail = product ? availableStock(product) : 1;
+    const next = Math.max(1, Math.min(Number(qty) || 1, avail || 1));
     saveCart(cart().map(i => i.id === id ? { ...i, qty: next } : i));
   }
   function removeCartItem(id) { saveCart(cart().filter(i => i.id !== id)); }
@@ -202,8 +205,8 @@
       ]
     };
     const all = orders(); all.unshift(order); saveOrders(all);
-    const reservedIds = new Set(draft.items.map(i => i.id));
-    saveProducts(products().map(p => reservedIds.has(p.id) ? { ...p, status: 'reserved' } : p));
+    const qtyById = new Map(draft.items.map(i => [i.id, i.qty]));
+    saveProducts(products().map(p => qtyById.has(p.id) ? { ...p, reserved: (p.reserved || 0) + qtyById.get(p.id), status: 'reserved' } : p));
     saveCart([]);
     localStorage.removeItem(STORAGE.checkoutDraft);
     return order;
@@ -211,25 +214,14 @@
   function withTimeline(order, text) { return { ...order, timeline: [...(order.timeline || []), { time: new Date().toISOString(), text }] }; }
   function approveOrder(id, staffName) {
     let result = { ok: false, message: 'ไม่พบคำสั่งซื้อ' };
-    const productList = products();
     const nextOrders = orders().map(order => {
       if (order.id !== id) return order;
       if (order.paymentStatus === 'approved') { result = { ok: false, message: 'คำสั่งซื้อนี้อนุมัติแล้ว' }; return order; }
       if (order.paymentStatus === 'rejected' || order.orderStatus === 'cancelled') { result = { ok: false, message: 'รายการนี้ถูกยกเลิกแล้ว' }; return order; }
-      const insufficient = order.items.find(item => (productList.find(p => p.id === item.id)?.stock || 0) < item.qty);
-      if (insufficient) { result = { ok: false, message: `สต็อกไม่พอ: ${insufficient.title}` }; return order; }
-      order.items.forEach(item => {
-        const p = productList.find(x => x.id === item.id);
-        if (p && !order.stockAdjusted) {
-          p.stock = Math.max(0, p.stock - item.qty);
-          p.sold = (p.sold || 0) + item.qty;
-          p.status = productStockStatus(p.stock);
-        }
-      });
-      result = { ok: true, message: 'อนุมัติและตัดสต็อกแล้ว' };
-      return withTimeline({ ...order, paymentStatus: 'approved', orderStatus: 'packing', deliveryStatus: 'not_shipped', stockAdjusted: true, staffName }, `พนักงาน ${staffName} อนุมัติสลิปและตัดสต็อก`);
+      result = { ok: true, message: 'อนุมัติสลิปแล้ว รอจัดเตรียม/ส่งสินค้าเพื่อตัดสต็อก' };
+      return withTimeline({ ...order, paymentStatus: 'approved', orderStatus: 'packing', deliveryStatus: 'not_shipped', staffName }, `พนักงาน ${staffName} อนุมัติสลิป`);
     });
-    if (result.ok) { saveProducts(productList); saveOrders(nextOrders); }
+    if (result.ok) saveOrders(nextOrders);
     return result;
   }
   function rejectOrder(id, staffName) {
@@ -246,7 +238,7 @@
       } else {
         order.items.forEach(item => {
           const p = productList.find(x => x.id === item.id);
-          if (p) p.status = productStockStatus(p.stock);
+          if (p) { p.reserved = Math.max(0, (p.reserved || 0) - item.qty); p.status = productStockStatus(p.stock); }
         });
       }
       result = { ok: true, message: 'ยกเลิกและคืนสถานะสินค้าแล้ว' };
@@ -257,6 +249,8 @@
   }
   function updateOrderStage(id, stage, staffName) {
     let result = { ok: false, message: 'ไม่พบคำสั่งซื้อ' };
+    const productList = products();
+    let touchedProducts = false;
     const nextOrders = orders().map(order => {
       if (order.id !== id) return order;
       if (order.paymentStatus !== 'approved') { result = { ok: false, message: 'ต้องอนุมัติสลิปก่อน' }; return order; }
@@ -266,13 +260,27 @@
         return withTimeline({ ...order, orderStatus: 'packing', staffName }, `พนักงาน ${staffName} กำลังจัดเตรียมสินค้า`);
       }
       if (stage === 'shipped') {
-        result = { ok: true, message: 'อัปเดตสถานะจัดส่งแล้ว' };
-        return withTimeline({ ...order, orderStatus: 'shipped', deliveryStatus: 'in_transit', staffName }, `พนักงาน ${staffName} ส่งสินค้าแล้ว`);
+        if (!order.stockAdjusted) {
+          const insufficient = order.items.find(item => (productList.find(p => p.id === item.id)?.stock || 0) < item.qty);
+          if (insufficient) { result = { ok: false, message: `สต็อกไม่พอ: ${insufficient.title}` }; return order; }
+          order.items.forEach(item => {
+            const p = productList.find(x => x.id === item.id);
+            if (p) {
+              p.stock = Math.max(0, p.stock - item.qty);
+              p.reserved = Math.max(0, (p.reserved || 0) - item.qty);
+              p.sold = (p.sold || 0) + item.qty;
+              p.status = productStockStatus(p.stock);
+            }
+          });
+          touchedProducts = true;
+        }
+        result = { ok: true, message: 'ส่งสินค้าและตัดสต็อกแล้ว' };
+        return withTimeline({ ...order, orderStatus: 'shipped', deliveryStatus: 'in_transit', stockAdjusted: true, staffName }, `พนักงาน ${staffName} ส่งสินค้าและตัดสต็อก`);
       }
       result = { ok: false, message: 'ไม่รู้จักสถานะนี้' };
       return order;
     });
-    if (result.ok) saveOrders(nextOrders);
+    if (result.ok) { if (touchedProducts) saveProducts(productList); saveOrders(nextOrders); }
     return result;
   }
   function customerReceive(id) {
@@ -294,10 +302,11 @@
   }
   function bookCard(product) {
     const fav = favorites().includes(product.id);
-    const outOfStock = Number(product.stock) <= 0;
+    const avail = availableStock(product);
+    const outOfStock = avail <= 0;
     const stockBadge = outOfStock
       ? '<span class="badge red">สินค้าหมด</span>'
-      : `<span class="badge ${product.stock < 100 ? 'red' : 'green'}">คงเหลือ ${product.stock} เล่ม</span>`;
+      : `<span class="badge ${avail < 100 ? 'red' : 'green'}">คงเหลือ ${avail} เล่ม</span>`;
     const coverStockBadge = outOfStock ? '<span class="cover-stock-badge">สินค้าหมด</span>' : '';
     const cartButton = outOfStock
       ? `<button class="btn btn-primary btn-small" type="button" disabled>${icon('cart')} สินค้าหมด</button>`
@@ -444,7 +453,7 @@
     staff, saveStaff, shippingOptions, makeOrder, approveOrder, rejectOrder, updateOrderStage,
     customerReceive, getOrderStatusIndex, stepHtml, statusLabel, statusBadge, timelineList,
     bookCard, toast, requireLogin, requireRole, renderNav, renderFooter, bindGlobalActions, findProduct,
-    dateTH, escapeHtml, productStockStatus
+    dateTH, escapeHtml, productStockStatus, availableStock
   };
   document.addEventListener('DOMContentLoaded', () => { renderNav(); renderFooter(); bindGlobalActions(); });
 })();
