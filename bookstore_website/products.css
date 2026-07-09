@@ -1,12 +1,23 @@
 
 .toolbar{
   display:grid;
-  grid-template-columns:1.5fr .8fr .8fr;
-  gap:10px;
+  grid-template-columns:1fr repeat(2,minmax(140px,220px));
+  gap:12px;
+  align-items:center;
   margin-bottom:22px;
   background:transparent;
   padding:0;
   border:0;
 }
 .products-grid{margin-top:18px}
-@media(max-width:760px){.toolbar{grid-template-columns:1fr}}
+
+.toolbar .input,.toolbar .select{
+  height:44px;
+  padding:10px 12px;
+  border-radius:10px;
+}
+
+@media(max-width:760px){
+  .toolbar{grid-template-columns:1fr}
+  .toolbar .input,.toolbar .select{height:44px}
+}
