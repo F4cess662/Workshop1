@@ -2,6 +2,7 @@ document.addEventListener('DOMContentLoaded', () => {
   const products = BookApp.products();
   const featured = [...products]
     .sort((a, b) => (Number(b.sold) || 0) - (Number(a.sold) || 0))
+    .slice(0, 6)
     .map(BookApp.bookCard)
     .join('');
   document.getElementById('featuredBooks').innerHTML = featured;
