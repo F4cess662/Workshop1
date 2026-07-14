@@ -18,10 +18,12 @@ document.addEventListener('DOMContentLoaded', () => {
     : `<button class="btn btn-primary" data-cart="${product.id}">${BookApp.icon('cart')} เพิ่มลงตะกร้า</button>`;
   root.innerHTML = `
     <div class="detail-layout">
-      <div class="book-cover detail-cover ${product.cover}"><span class="cover-icon">${BookApp.icon('book')}</span><strong class="cover-title">${BookApp.escapeHtml(product.title)}</strong></div>
+      <div class="book-cover detail-cover">
+        <img src="${BookApp.escapeHtml(product.coverUrl || product.cover)}" alt="${BookApp.escapeHtml(product.title)}" class="detail-cover-img" onerror="this.onerror=null;this.src='assets/cover/default.jpg'">
+      </div>
       <article class="card detail-panel">
         <div class="detail-meta">
-          <span class="badge orange">${BookApp.escapeHtml(product.category)}</span>
+          <a class="badge orange category-link" href="products.html?category=${encodeURIComponent(product.category)}">${BookApp.escapeHtml(product.category)}</a>
         </div>
         <h1>${BookApp.escapeHtml(product.title)}</h1>
         <p class="helper">ผู้แต่ง: ${BookApp.escapeHtml(product.author)}</p>
@@ -31,6 +33,10 @@ document.addEventListener('DOMContentLoaded', () => {
           ${stockText}
         </div>
         <p class="detail-desc">${BookApp.escapeHtml(product.desc)}</p>
+        <div class="book-detail-row">
+          <span class="book-detail-label">ISBN</span>
+          <strong>${BookApp.escapeHtml(product.isbn || 'ไม่มีข้อมูล')}</strong>
+        </div>
         <div class="notice">แนะนำหนังสือหมวดเดียวกันไว้ด้านล่าง เพื่อช่วยเลือกเล่มที่ใกล้เคียงกัน</div>
         <div class="buy-box">
           <div><span class="helper">ราคาเล่มละ</span><div class="price" style="font-size:34px">${BookApp.formatTHB(product.price)}</div></div>

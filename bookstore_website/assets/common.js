@@ -62,6 +62,13 @@
     { id: 'b015', title: 'Money 101 เริ่มต้นนับหนึ่งสู่ชีวิตการเงินอุดมสุข', author: 'จักรพงษ์ เมษพันธุ์ (The Money Coach)', category: 'การเงินและการลงทุน', price: 325, stock: 102, status: 'available', cover: 'assets/cover/b015.jpg', createdAt: '2026-02-26T09:00:00.000Z', rating: 4.9, sold: 538, desc: 'คู่มือพื้นฐานด้านการเงินส่วนบุคคล ครอบคลุมการวางแผนรายรับรายจ่าย การออม การลงทุน และการบริหารหนี้ เหมาะสำหรับผู้ที่ต้องการเริ่มต้นสร้างความมั่นคงทางการเงิน' },
   ];
 
+  function demoIsbn(index) {
+    const body = `978616000${String(index).padStart(3, '0')}`;
+    const sum = [...body].reduce((total, digit, position) => total + Number(digit) * (position % 2 ? 3 : 1), 0);
+    return `${body}${(10 - (sum % 10)) % 10}`;
+  }
+  seedProducts.forEach((product, index) => { product.isbn = demoIsbn(index + 1); });
+
   const seedUsers = [
     { id: 'u001', name: 'ลูกค้าทดสอบ', email: 'customer@example.com', password: '123456', role: 'customer', phone: '080-111-2222' },
     { id: 'u002', name: 'พนักงานร้าน', email: 'staff@example.com', password: '123456', role: 'staff', phone: '080-333-4444' },
@@ -87,6 +94,11 @@
   function write(key, value) { localStorage.setItem(key, JSON.stringify(value)); }
   function initData() {
     if (!localStorage.getItem(STORAGE.products)) write(STORAGE.products, seedProducts);
+    else {
+      const savedProducts = read(STORAGE.products, seedProducts);
+      const migratedProducts = savedProducts.map((product, index) => product.isbn ? product : { ...product, isbn: demoIsbn(index + 1) });
+      if (migratedProducts.some((product, index) => product.isbn !== savedProducts[index].isbn)) write(STORAGE.products, migratedProducts);
+    }
     if (!localStorage.getItem(STORAGE.users)) write(STORAGE.users, seedUsers);
     if (!localStorage.getItem(STORAGE.staff)) write(STORAGE.staff, seedStaff);
     if (!localStorage.getItem(STORAGE.cart)) write(STORAGE.cart, []);
@@ -395,7 +407,7 @@
         <div class="nav-links" id="navLinks">
           ${customerLinks}
           ${staffLinks}${adminLinks}
-          ${user ? `<a class="${page === 'profile' ? 'active' : ''}" href="profile.html">${escapeHtml(user.name)}</a><button id="logoutBtn">ออกจากระบบ</button>` : `<a class="${page === 'login' ? 'active' : ''}" href="login.html">เข้าสู่ระบบ</a>`}
+          ${user ? `<a class="${page === 'profile' ? 'active' : ''}" href="profile.html">ตั้งค่า</a><button id="logoutBtn">ออกจากระบบ</button>` : `<a class="${page === 'login' ? 'active' : ''}" href="login.html">เข้าสู่ระบบ</a>`}
         </div>
       </div>
     </header>`;
