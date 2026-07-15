@@ -62,7 +62,7 @@ function bindForms(){
     const fd=new FormData(e.target);
     const file=fd.get('coverFile');
     const saveProduct=coverUrl=>{
-      const product={id:'b'+Date.now(),title:fd.get('title'),author:fd.get('author'),category:fd.get('category'),price:Number(fd.get('price')),stock:Number(fd.get('stock')),status:BookApp.productStockStatus(Number(fd.get('stock'))),cover:'cover-'+((BookApp.products().length%6)+1),coverUrl:coverUrl||'',rating:4.5,sold:0,desc:'รายละเอียดหนังสือที่เพิ่มโดยผู้ดูแลระบบ'};
+      const product={id:'b'+Date.now(),title:fd.get('title'),author:fd.get('author'),isbn:fd.get('isbn'),category:fd.get('category'),price:Number(fd.get('price')),stock:Number(fd.get('stock')),status:BookApp.productStockStatus(Number(fd.get('stock'))),cover:'cover-'+((BookApp.products().length%6)+1),coverUrl:coverUrl||'',rating:4.5,sold:0,desc:'รายละเอียดหนังสือที่เพิ่มโดยผู้ดูแลระบบ'};
       BookApp.saveProducts([product,...BookApp.products()]);
       e.target.reset();
       resetPreview();
