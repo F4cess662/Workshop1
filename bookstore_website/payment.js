@@ -39,8 +39,8 @@ document.addEventListener('DOMContentLoaded', () => {
   document.getElementById('paymentForm').addEventListener('submit', e => {
     e.preventDefault();
     const file = input.files[0];
-    if (!file) return;
-    if (!slipData) return;
+    if (!file) { showAlertModal('กรุณาแนบสลิป'); return; }
+    if (!slipData) { showAlertModal('กรุณาแนบสลิป'); return; }
     const order = BookApp.makeOrder(
       draft,
       file.name,
@@ -50,6 +50,15 @@ document.addEventListener('DOMContentLoaded', () => {
 
     showOrderSuccessModal(order.id);
   });
+
+  function showAlertModal(message) {
+    document.querySelector('.modal-backdrop')?.remove();
+    const modal = document.createElement('div');
+    modal.className = 'modal-backdrop';
+    modal.innerHTML = `<div class="modal-card order-success-card"><p class="order-success-text">${BookApp.escapeHtml(message)}</p><button class="btn btn-primary" id="alertOk">ตกลง</button></div>`;
+    document.body.appendChild(modal);
+    document.getElementById('alertOk').onclick = () => modal.remove();
+  }
 
   function showOrderSuccessModal(orderId) {
     document.querySelector('.modal-backdrop')?.remove();
