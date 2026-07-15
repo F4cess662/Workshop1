@@ -46,8 +46,16 @@ document.addEventListener('DOMContentLoaded', () => {
     if (!file) { BookApp.toast('กรุณาแนบสลิปก่อน'); return; }
     if (!/^\d{10}$/.test(phone)) { BookApp.toast('กรุณากรอกเบอร์โทรติดต่อ 10 หลักเป็นตัวเลขเท่านั้น'); return; }
     if (!slipData) { BookApp.toast('ระบบกำลังอ่านไฟล์สลิป กรุณากดอีกครั้ง'); return; }
-    const order = BookApp.makeOrder(draft, file.name, slipData, slipType, phone);
-    BookApp.toast('ส่งสลิปแล้ว รอพนักงานตรวจสอบ');
-    setTimeout(() => location.href = 'tracking.html?order=' + order.id, 700);
+    const order = BookApp.makeOrder(draft, file.name, slipData, slipType);
+    showOrderSuccessModal(order.id);
   });
+
+  function showOrderSuccessModal(orderId) {
+    document.querySelector('.modal-backdrop')?.remove();
+    const modal = document.createElement('div');
+    modal.className = 'modal-backdrop';
+    modal.innerHTML = `<div class="modal-card order-success-card"><p class="order-success-text">ได้รับคำสั่งซื้อแล้ว รอการยืนยันการชำระเงินโดยพนักงาน</p><button class="btn btn-primary" id="orderSuccessOk">ตกลง</button></div>`;
+    document.body.appendChild(modal);
+    document.getElementById('orderSuccessOk').onclick = () => { location.href = 'tracking.html?order=' + orderId; };
+  }
 });
