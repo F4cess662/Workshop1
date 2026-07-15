@@ -12,7 +12,9 @@ function render(){
   }
   itemsEl.innerHTML = items.map(({product,qty})=>`
     <div class="cart-row">
-      <div class="book-cover mini-cover ${product.cover}"><span class="cover-icon">${BookApp.icon('book')}</span><strong class="cover-title">${BookApp.escapeHtml(product.title)}</strong></div>
+      <div class="book-cover mini-cover">
+        <img src="${BookApp.escapeHtml(product.coverUrl || product.cover || 'assets/cover/default.jpg')}" alt="${BookApp.escapeHtml(product.title)}" class="mini-cover-img" onerror="this.onerror=null;this.src='assets/cover/default.jpg'">
+      </div>
       <div><h3 style="margin:0;color:var(--brown)">${BookApp.escapeHtml(product.title)}</h3><p class="helper">${BookApp.escapeHtml(product.author)} · คงเหลือ ${product.stock} เล่ม</p><strong class="price">${BookApp.formatTHB(product.price)}</strong></div>
       <div class="cart-actions"><div class="qty-control"><button data-minus="${product.id}">−</button><span>${qty}</span><button data-plus="${product.id}">+</button></div><button class="btn btn-danger btn-small" data-remove="${product.id}" style="margin-left:8px">${BookApp.icon('trash')} ลบ</button></div>
     </div>`).join('');

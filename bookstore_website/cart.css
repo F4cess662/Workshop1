@@ -17,15 +17,16 @@
   height:auto;
   aspect-ratio:4 / 5.25;
   border-radius:6px;
-  padding:8px;
+  padding:0;
+  overflow:hidden;
+  background:linear-gradient(135deg,var(--brown),var(--orange));
 }
-.mini-cover .cover-icon{
-  width:24px;
-  height:24px;
-  border-radius:6px;
+.mini-cover-img{
+  width:100%;
+  height:100%;
+  object-fit:cover;
+  display:block;
 }
-.mini-cover .cover-icon .svg-icon{width:14px;height:14px}
-.mini-cover .cover-title{font-size:10px}
 .summary-stack{
   position:sticky;
   top:76px;
