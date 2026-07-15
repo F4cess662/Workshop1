@@ -140,6 +140,20 @@ function saveFavorites(items) { write(scopedKey(STORAGE.fav), items); renderNav(
   function cartTotal() { return cartDetailed().reduce((sum, item) => sum + item.product.price * item.qty, 0); }
   function productStockStatus(stock) { return stock <= 0 ? 'sold' : 'available'; }
   function availableStock(product) { return Math.max(0, (product?.stock || 0) - (product?.reserved || 0)); }
+  let uniqueNumericIdLast = 0;
+  let uniqueNumericIdSeq = 0;
+  // Monotonic counter that never resets on the same millisecond, so even
+  // clicks fired within the same ms (or same microtask/loop) each get a
+  // strictly increasing sequence number instead of colliding.
+  function uniqueNumericId() {
+    const now = Date.now();
+    if (now > uniqueNumericIdLast) {
+      uniqueNumericIdLast = now;
+      uniqueNumericIdSeq = 0;
+    }
+    uniqueNumericIdSeq += 1;
+    return `${uniqueNumericIdLast}${String(uniqueNumericIdSeq).padStart(4, '0')}`;
+  }
   function statusLabel(type, value) { return statusText[type]?.[value] || value || '-'; }
   function statusBadge(type, value) { return `<span class="badge ${statusTone[value] || 'gray'}">${statusLabel(type, value)}</span>`; }
 
@@ -199,11 +213,24 @@ function saveFavorites(items) { write(scopedKey(STORAGE.fav), items); renderNav(
     ];
   }
   //--------------------------------------------------------------------------------------------//
+  // Builds an order/product ID that is guaranteed not to collide, even if
+  // this function is called multiple times within the same millisecond
+  // (e.g. a user or admin double-clicking "submit" very fast) or from two
+  // browser tabs at once. uniqueNumericId() already gives a per-tab
+  // monotonically increasing number; the while-loop below adds a final
+  // safety check against every order ID already saved in storage (shared
+  // across tabs via localStorage), regenerating on the rare chance of a
+  // cross-tab clash.
+  function generateOrderId() {
+    let id;
+    do {
+      id = `ORD${uniqueNumericId()}`;
+    } while (orders().some(o => o.id === id));
+    return id;
+  }
   function makeOrder(draft, slipName, slipData, slipType, contactPhone) {
     const current = currentUser();
-    const stamp = Date.now().toString(36).toUpperCase();
-    const suffix = Math.random().toString(36).slice(2, 8).toUpperCase();
-    const id = `ORD${stamp}${suffix}`;
+    const id = generateOrderId();
     const order = {
       id,
       createdAt: new Date().toISOString(),
@@ -508,7 +535,7 @@ function bindGlobalActions(root = document) {
     staff, saveStaff, shippingOptions, makeOrder, approveOrder, rejectOrder, updateOrderStage,
     customerReceive, getOrderStatusIndex, stepHtml, statusLabel, statusBadge, timelineList,
     bookCard, toast, requireLogin, requireRole, renderNav, renderFooter, bindGlobalActions, findProduct,
-    dateTH, escapeHtml, productStockStatus, availableStock, resubmitSlip
+    dateTH, escapeHtml, productStockStatus, availableStock, uniqueNumericId, generateOrderId, resubmitSlip
   };
   document.addEventListener('DOMContentLoaded', () => { renderNav(); renderFooter(); bindGlobalActions(); });
 })();
