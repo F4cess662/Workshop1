@@ -20,7 +20,8 @@ document.addEventListener("DOMContentLoaded", () => {
       selectedShipping = "standard";
     localStorage.setItem(BookApp.STORAGE.selectedShipping, selectedShipping);
     main.innerHTML = `
-      <section class="card"><h3>ที่อยู่จัดส่ง</h3><div class="grid grid-2" id="addrList">${addresses.map((a) => `<article class="card address-card ${a.id === selectedAddress ? "active" : ""}" data-address="${a.id}"><strong>${BookApp.escapeHtml(a.name)}</strong><p class="helper">${BookApp.escapeHtml(a.receiver)} · ${BookApp.escapeHtml(a.phone)}<br>${BookApp.escapeHtml(a.detail)}</p></article>`).join("")}</div><form id="addrForm" class="form-grid" style="margin-top:14px"><input class="input" name="name" placeholder="ชื่อที่อยู่ เช่น บ้าน" required><input class="input" name="receiver" placeholder="ชื่อผู้รับ" required><input class="input" name="phone" placeholder="เบอร์โทร (10 หลัก)" type="tel" inputmode="numeric" pattern="[0-9]{10}" maxlength="10" required><input class="input" name="detail" placeholder="รายละเอียดที่อยู่" required><button class="btn btn-secondary" type="submit">${BookApp.icon("plus")} เพิ่มที่อยู่</button></form></section>`;
+      <section class="card"><h3>ที่อยู่จัดส่ง</h3><div class="grid grid-2" id="addrList">${addresses.map((a) => `<article class="card address-card ${a.id === selectedAddress ? "active" : ""}" data-address="${a.id}"><strong>${BookApp.escapeHtml(a.name || a.receiver || 'ที่อยู่จัดส่ง')}</strong><p class="helper">${BookApp.escapeHtml(a.receiver || '')}${a.phone ? ` · ${BookApp.escapeHtml(a.phone)}` : ''}${a.detail ? `<br>${BookApp.escapeHtml(a.detail)}` : ''}${a.subdistrict || a.district || a.province || a.postalCode ? `<br>${BookApp.escapeHtml([a.subdistrict, a.district, a.province, a.postalCode].filter(Boolean).join(' '))}` : ''}</p></article>`).join("")}</div><form id="addrForm" class="form-grid" style="margin-top:14px">
+      <input class="input" name="receiver" placeholder="ชื่อผู้รับ" required><input class="input" name="phone" placeholder="เบอร์โทร (10 หลัก)" type="tel" inputmode="numeric" pattern="[0-9]{10}" maxlength="10" required><input class="input" name="detail" placeholder="รายละเอียดที่อยู่" required><input class="input" name="subdistrict" placeholder="ตำบล" required><input class="input" name="district" placeholder="อำเภอ" required><input class="input" name="province" placeholder="จังหวัด" required><input class="input" name="postalCode" placeholder="เลขไปรษณีย์" inputmode="numeric" maxlength="5" required><button class="btn btn-secondary" type="submit">${BookApp.icon("plus")} เพิ่มที่อยู่</button></form></section>`;
     document.querySelectorAll("[data-address]").forEach(
       (el) =>
         (el.onclick = () => {
@@ -36,16 +37,25 @@ document.addEventListener("DOMContentLoaded", () => {
       e.preventDefault();
       const fd = new FormData(e.target);
       const phone = String(fd.get("phone") || "").replace(/\D/g, "");
+      const postalCode = String(fd.get("postalCode") || "").replace(/\D/g, "");
       if (phone.length !== 10) {
         BookApp.toast("กรุณากรอกเบอร์โทรให้ครบ 10 หลัก (ตัวเลขเท่านั้น)");
         return;
       }
+      if (!/^\d{5}$/.test(postalCode)) {
+        BookApp.toast("กรุณากรอกเลขไปรษณีย์ 5 หลักเป็นตัวเลขเท่านั้น");
+        return;
+      }
       const item = {
-        id: "a" + Date.now(),
+        id: "a" + BookApp.uniqueNumericId(),
         name: fd.get("name"),
         receiver: fd.get("receiver"),
         phone,
         detail: fd.get("detail"),
+        subdistrict: fd.get("subdistrict"),
+        district: fd.get("district"),
+        province: fd.get("province"),
+        postalCode,
       };
       BookApp.saveAddresses([...BookApp.addresses(), item]);
       selectedAddress = item.id;

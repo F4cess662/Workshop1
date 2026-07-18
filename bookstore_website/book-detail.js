@@ -55,5 +55,4 @@ document.addEventListener('DOMContentLoaded', () => {
     e.currentTarget.innerHTML = `${BookApp.icon(active ? 'heartFill' : 'heart')} ${active ? 'อยู่ในรายการโปรด' : 'บันทึกโปรด'}`;
     BookApp.renderNav();
   });
-  BookApp.bindGlobalActions(root);
 });
