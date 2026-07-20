@@ -192,6 +192,20 @@ function saveFavorites(items) { write(scopedKey(STORAGE.fav), items); renderNav(
   function cartTotal() { return cartDetailed().reduce((sum, item) => sum + item.product.price * item.qty, 0); }
   function productStockStatus(stock) { return stock <= 0 ? 'sold' : 'available'; }
   function availableStock(product) { return Math.max(0, (product?.stock || 0) - (product?.reserved || 0)); }
+  let uniqueNumericIdLast = 0;
+  let uniqueNumericIdSeq = 0;
+  // Monotonic counter that never resets on the same millisecond, so even
+  // clicks fired within the same ms (or same microtask/loop) each get a
+  // strictly increasing sequence number instead of colliding.
+  function uniqueNumericId() {
+    const now = Date.now();
+    if (now > uniqueNumericIdLast) {
+      uniqueNumericIdLast = now;
+      uniqueNumericIdSeq = 0;
+    }
+    uniqueNumericIdSeq += 1;
+    return `${uniqueNumericIdLast}${String(uniqueNumericIdSeq).padStart(4, '0')}`;
+  }
   function statusLabel(type, value) { return statusText[type]?.[value] || value || '-'; }
   function statusBadge(type, value) { return `<span class="badge ${statusTone[value] || 'gray'}">${statusLabel(type, value)}</span>`; }
 
@@ -287,7 +301,22 @@ function saveFavorites(items) { write(scopedKey(STORAGE.fav), items); renderNav(
     ];
   }
   //--------------------------------------------------------------------------------------------//
-  function makeOrder(draft, slipName, slipData, slipType) {
+  // Builds an order/product ID that is guaranteed not to collide, even if
+  // this function is called multiple times within the same millisecond
+  // (e.g. a user or admin double-clicking "submit" very fast) or from two
+  // browser tabs at once. uniqueNumericId() already gives a per-tab
+  // monotonically increasing number; the while-loop below adds a final
+  // safety check against every order ID already saved in storage (shared
+  // across tabs via localStorage), regenerating on the rare chance of a
+  // cross-tab clash.
+  function generateOrderId() {
+    let id;
+    do {
+      id = `ORD${uniqueNumericId()}`;
+    } while (orders().some(o => o.id === id));
+    return id;
+  }
+  function makeOrder(draft, slipName, slipData, slipType, contactPhone) {
     const current = currentUser();
     const response = current ? apiRequestSync('POST', '/orders/create', {
       userId: Number(current.id),
@@ -304,6 +333,7 @@ function saveFavorites(items) { write(scopedKey(STORAGE.fav), items); renderNav(
       customerId: current?.id || 'guest',
       customerName: current?.name || 'ลูกค้า',
       customerEmail: current?.email || '',
+      customerPhone: contactPhone || draft.address?.phone || current?.phone || '',
       items: draft.items,
       subtotal: draft.subtotal,
       shipping: draft.shipping,
@@ -328,6 +358,28 @@ function saveFavorites(items) { write(scopedKey(STORAGE.fav), items); renderNav(
     saveCart([]);
     localStorage.removeItem(STORAGE.checkoutDraft);
     return order;
+  }
+  function resubmitSlip(id, slipName, slipData, slipType) {
+    let result = { ok: false, message: 'ไม่พบคำสั่งซื้อ' };
+    const productList = products();
+    const nextOrders = orders().map(order => {
+      if (order.id !== id) return order;
+      if (order.paymentStatus !== 'rejected') { result = { ok: false, message: 'คำสั่งซื้อนี้ไม่สามารถแนบหลักฐานใหม่ได้' }; return order; }
+      const attempts = order.resubmitCount || 0;
+      if (attempts >= 2) { result = { ok: false, message: 'ครบจำนวนครั้งที่แนบหลักฐานได้แล้ว คำสั่งซื้อนี้ถูกยกเลิกถาวร' }; return order; }
+      const insufficient = order.items.find(item => availableStock(productList.find(p => p.id === item.id)) < item.qty);
+      if (insufficient) { result = { ok: false, message: `สต็อกไม่พอสำหรับ: ${insufficient.title}` }; return order; }
+      order.items.forEach(item => {
+        const p = productList.find(x => x.id === item.id);
+        if (p) { p.reserved = (p.reserved || 0) + item.qty; p.status = 'reserved'; }
+      });
+      const nextAttempts = attempts + 1;
+      const isLastChance = nextAttempts >= 2;
+      result = { ok: true, message: isLastChance ? 'แนบหลักฐานครั้งสุดท้ายแล้ว รอตรวจสอบ หากไม่ผ่านคำสั่งซื้อจะถูกยกเลิกถาวร' : 'แนบหลักฐานใหม่แล้ว รอตรวจสอบ' };
+      return withTimeline({ ...order, paymentStatus: 'pending', orderStatus: 'pending_review', deliveryStatus: 'not_shipped', resubmitCount: nextAttempts, slipName: slipName || order.slipName, slipData: slipData || order.slipData, slipType: slipType || order.slipType }, `ลูกค้าแนบหลักฐานการชำระเงินใหม่ (ครั้งที่ ${nextAttempts})`);
+    });
+    if (result.ok) { saveProducts(productList); saveOrders(nextOrders); }
+    return result;
   }
   function withTimeline(order, text) { return { ...order, timeline: [...(order.timeline || []), { time: new Date().toISOString(), text }] }; }
   function approveOrder(id, staffName) {
@@ -585,7 +637,7 @@ function bindGlobalActions(root = document) {
     staff, saveStaff, shippingOptions, makeOrder, approveOrder, rejectOrder, updateOrderStage,
     customerReceive, getOrderStatusIndex, stepHtml, statusLabel, statusBadge, timelineList,
     bookCard, toast, requireLogin, requireRole, renderNav, renderFooter, bindGlobalActions, findProduct,
-    dateTH, escapeHtml, productStockStatus, availableStock
+    dateTH, escapeHtml, productStockStatus, availableStock, uniqueNumericId, generateOrderId, resubmitSlip
   };
   document.addEventListener('DOMContentLoaded', () => { renderNav(); renderFooter(); bindGlobalActions(); });
 })();

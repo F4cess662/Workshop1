@@ -30,6 +30,7 @@ document.addEventListener('DOMContentLoaded', () => {
     reader.readAsDataURL(file);
   }
 
+
   input.addEventListener('change', () => {
     const file = input.files[0];
     if (file && file.size > 2 * 1024 * 1024) {
