@@ -1,4 +1,5 @@
 require('dotenv').config();
+const path = require('path');
 const express = require('express');
 const cors = require('cors');
 const pool = require('./config/db');
@@ -7,7 +8,8 @@ const app = express();
 const PORT = Number(process.env.PORT || 3000);
 
 app.use(cors({ origin: process.env.CORS_ORIGIN || '*' }));
-app.use(express.json({ limit: '2mb' }));
+app.use(express.json({ limit: '10mb' }));
+app.use('/assets', express.static(path.join(__dirname, '../..', 'bookstore_website', 'assets')));
 
 app.get('/api/health', async (req, res) => {
   try {

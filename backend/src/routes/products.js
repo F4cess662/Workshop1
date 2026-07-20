@@ -1,7 +1,32 @@
 const express = require('express');
+const fs = require('fs');
+const path = require('path');
+const multer = require('multer');
 const pool = require('../config/db');
 
 const router = express.Router();
+
+const coverDir = path.join(__dirname, '..', '..', '..', 'bookstore_website', 'assets', 'cover');
+if (!fs.existsSync(coverDir)) {
+  fs.mkdirSync(coverDir, { recursive: true });
+}
+
+const storage = multer.diskStorage({
+  destination: (req, file, cb) => cb(null, coverDir),
+  filename: (req, file, cb) => {
+    const ext = path.extname(file.originalname) || '.jpg';
+    const base = `${Date.now()}-${Math.random().toString(36).slice(2, 10)}`;
+    cb(null, `${base}${ext}`);
+  }
+});
+
+const upload = multer({
+  storage,
+  fileFilter: (req, file, cb) => {
+    const allowed = ['image/jpeg', 'image/png', 'image/webp', 'image/gif'];
+    cb(null, allowed.includes(file.mimetype));
+  }
+});
 
 router.get('/', async (req, res) => {
   try {
@@ -43,8 +68,10 @@ router.get('/:id', async (req, res) => {
   }
 });
 
-router.post('/', async (req, res) => {
-  const { title, author, isbn, category, price, stock, desc, cover } = req.body;
+router.post('/', upload.single('coverFile'), async (req, res) => {
+  const { title, author, isbn, category, price, stock, desc } = req.body;
+  const file = req.file;
+  const coverPath = file ? `assets/cover/${file.filename}` : null;
   if (!title || !Number.isFinite(Number(price))) return res.status(400).json({ ok: false, message: 'title and price are required' });
   try {
     let categoryId = null;
@@ -53,9 +80,14 @@ router.post('/', async (req, res) => {
       if (existing.length) categoryId = existing[0].category_id;
       else { const [created] = await pool.query('INSERT INTO categories (category_name) VALUES (?)', [category]); categoryId = created.insertId; }
     }
-    const [result] = await pool.query('INSERT INTO books (title, author_name, isbn, category_id, price, stock_quantity, description, cover_image_url) VALUES (?, ?, ?, ?, ?, ?, ?, ?)', [title, author || null, isbn || null, categoryId, Number(price), Number(stock) || 0, desc || null, cover || null]);
-    res.status(201).json({ ok: true, id: String(result.insertId) });
-  } catch (error) { res.status(500).json({ ok: false, message: 'Failed to create product', error: error.message }); }
+    const [result] = await pool.query('INSERT INTO books (title, author_name, isbn, category_id, price, stock_quantity, description, cover_image_url) VALUES (?, ?, ?, ?, ?, ?, ?, ?)', [title, author || null, isbn || null, categoryId, Number(price), Number(stock) || 0, desc || null, coverPath]);
+    res.status(201).json({ ok: true, id: String(result.insertId), cover: coverPath });
+  } catch (error) {
+    if (error.code === 'ER_DUP_ENTRY') {
+      return res.status(409).json({ ok: false, message: 'ไม่สามารถเพิ่มสินค้าได้', error: 'ISBN นี้มีอยู่แล้ว' });
+    }
+    res.status(500).json({ ok: false, message: 'Failed to create product', error: error.message });
+  }
 });
 
 router.patch('/:id', async (req, res) => {

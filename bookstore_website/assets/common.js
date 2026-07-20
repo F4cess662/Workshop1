@@ -106,7 +106,13 @@ function initData() {
   function products() {
     const cached = read(STORAGE.products, []);
     const response = apiGetSync('/products');
-    const items = response?.ok ? response.items : cached;
+    let items = response?.ok ? response.items : cached;
+    if (response?.ok) {
+      items = items.map(item => {
+        const local = cached.find(c => String(c.id) === String(item.id));
+        return local ? { ...item, ...local } : item;
+      });
+    }
     if (items.length) {
       write(STORAGE.products, items);
     }
@@ -494,7 +500,7 @@ function saveFavorites(items) { write(scopedKey(STORAGE.fav), items); renderNav(
       <article class="book-card ${outOfStock ? 'is-out-of-stock' : ''}" data-id="${product.id}" data-category="${escapeHtml(product.category)}">
         <button class="icon-btn fav-btn ${fav ? 'active' : ''}" data-fav="${product.id}" title="บันทึกรายการโปรด" aria-label="บันทึกรายการโปรด">${icon(fav ? 'heartFill' : 'heart')}</button>
         <a href="book-detail.html#id=${product.id}" class="book-cover">
-          <img src="${product.cover}" alt="${escapeHtml(product.title)}" class="cover-img" onerror="this.onerror=null;this.src='assets/cover/default.jpg'">
+          <img src="${product.coverUrl || product.cover}" alt="${escapeHtml(product.title)}" class="cover-img" onerror="this.onerror=null;this.src='assets/cover/default.jpg'">
           ${coverStockBadge}
         </a>
         <div class="book-info">
@@ -547,8 +553,8 @@ function saveFavorites(items) { write(scopedKey(STORAGE.fav), items); renderNav(
     const cartCount = cart().reduce((s, i) => s + i.qty, 0);
     const favCount = favorites().length;
     const isStaffOnly = user?.role === 'staff';
-    const adminLinks = user?.role === 'admin' ? `<a class="${page === 'admin' ? 'active' : ''}" href="admin.html">Admin</a>` : '';
-    const staffLinks = user?.role === 'staff' || user?.role === 'admin' ? `<a class="${page === 'staff' ? 'active' : ''}" href="staff.html">Staff</a>` : '';
+    const adminLinks = user?.role === 'admin' ? `<a class="${page === 'admin' ? 'active' : ''}" href="admin.html">ผู้ดูแล</a>` : '';
+    const staffLinks = user?.role === 'staff' || user?.role === 'admin' ? `<a class="${page === 'staff' ? 'active' : ''}" href="staff.html">พนักงาน</a>` : '';
 
     const customerLinks = isStaffOnly ? '' : `
     <a class="${page === 'home' ? 'active' : ''}" href="index.html">หน้าหลัก</a>
