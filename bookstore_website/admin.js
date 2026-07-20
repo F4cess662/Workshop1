@@ -33,12 +33,19 @@ function renderApprovals(){
 function bindForms(){
   const coverInput=document.querySelector('[name="coverFile"]');
   const coverPreview=document.getElementById('coverPreview');
+  const previewWrap=document.querySelector('.image-preview-wrap');
   const resetPreview=()=>{
     if(coverPreview){
       coverPreview.src='';
       coverPreview.hidden=true;
     }
+    if(previewWrap){
+      previewWrap.style.display='none';
+    }
   };
+  if(previewWrap){
+    previewWrap.style.display='none';
+  }
   if(coverInput){
     coverInput.onchange=()=>{
       const file=coverInput.files?.[0];
@@ -48,6 +55,9 @@ function bindForms(){
           if(coverPreview){
             coverPreview.src=reader.result;
             coverPreview.hidden=false;
+          }
+          if(previewWrap){
+            previewWrap.style.display='flex';
           }
         };
         reader.readAsDataURL(file);
@@ -60,21 +70,46 @@ function bindForms(){
     e.preventDefault();
     const fd=new FormData(e.target);
     const file=fd.get('coverFile');
-    const saveProduct=coverUrl=>{
-      const product={id:'b'+Date.now(),title:fd.get('title'),author:fd.get('author'),isbn:fd.get('isbn'),category:fd.get('category'),price:Number(fd.get('price')),stock:Number(fd.get('stock')),status:BookApp.productStockStatus(Number(fd.get('stock'))),cover:'cover-'+((BookApp.products().length%6)+1),coverUrl:coverUrl||'',rating:4.5,sold:0,desc:'รายละเอียดหนังสือที่เพิ่มโดยผู้ดูแลระบบ'};
-      fetch('http://localhost:3000/api/products',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({...product,cover:product.coverUrl})}).catch(()=>BookApp.toast('ไม่สามารถเพิ่มสินค้าได้'));
-      e.target.reset();
-      resetPreview();
-      BookApp.toast('เพิ่มสินค้าแล้ว');
-      renderAll();
+    const saveProduct=()=>{
+      fetch('http://localhost:3000/api/products',{method:'POST',body:fd})
+        .then(async res => {
+          const data = await res.json().catch(() => null);
+          if (!res.ok || !data?.ok) {
+            console.error('Add product response failed', { status: res.status, statusText: res.statusText, data });
+            const message = data?.message || `${res.status} ${res.statusText}`;
+            const detail = data?.error ? ` (${data.error})` : '';
+            throw new Error(message + detail);
+          }
+          return data;
+        })
+        .then(data=>{
+          const savedProduct={
+            id:data.id,
+            title:fd.get('title'),
+            author:fd.get('author'),
+            isbn:fd.get('isbn'),
+            category:fd.get('category'),
+            price:Number(fd.get('price')),
+            stock:Number(fd.get('stock')),
+            status:BookApp.productStockStatus(Number(fd.get('stock'))),
+            cover:data.cover || 'assets/cover/default.jpg',
+            rating:4.5,
+            sold:0,
+            desc:fd.get('desc') || 'รายละเอียดหนังสือที่เพิ่มโดยผู้ดูแลระบบ'
+          };
+          console.log('Saved product', savedProduct);
+          BookApp.saveProducts([savedProduct,...BookApp.products()]);
+          e.target.reset();
+          resetPreview();
+          BookApp.toast('เพิ่มสินค้าแล้ว');
+          renderAll();
+        })
+        .catch(error=>{
+          console.error('Add product failed', error);
+          BookApp.toast(`ไม่สามารถเพิ่มสินค้าได้: ${error.message}`);
+        });
     };
-    if(file && file.size){
-      const reader=new FileReader();
-      reader.onload=()=>saveProduct(reader.result);
-      reader.readAsDataURL(file);
-    } else {
-      saveProduct('');
-    }
+    saveProduct();
   };
   document.getElementById('staffForm').onsubmit=e=>{
     e.preventDefault();

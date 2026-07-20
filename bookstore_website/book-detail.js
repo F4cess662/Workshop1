@@ -24,7 +24,7 @@ document.addEventListener('DOMContentLoaded', () => {
   root.innerHTML = `
     <div class="detail-layout">
       <div class="book-cover detail-cover">
-        <img src="${BookApp.escapeHtml(product.coverUrl || product.cover)}" alt="${BookApp.escapeHtml(product.title)}" class="detail-cover-img" onerror="this.onerror=null;this.src='assets/cover/default.jpg'">
+        <img src="${BookApp.escapeHtml(product.coverUrl || product.cover || 'assets/cover/default.jpg')}" alt="${BookApp.escapeHtml(product.title)}" class="detail-cover-img" onerror="this.onerror=null;this.src='assets/cover/default.jpg'">
       </div>
       <article class="card detail-panel">
         <div class="detail-meta">
