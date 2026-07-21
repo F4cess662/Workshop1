@@ -83,7 +83,7 @@ function openPasswordModal() {
   document.getElementById('cancelPwdBtn').onclick = closeModal;
   overlay.addEventListener('click', (e) => { if (e.target === overlay) closeModal(); });
 
-  document.getElementById('pwdChangeForm').onsubmit = (e) => {
+  document.getElementById('pwdChangeForm').onsubmit = async (e) => {
     e.preventDefault();
     const fd = new FormData(e.target);
     const currentPassword = String(fd.get('currentPassword') || '');
@@ -91,10 +91,6 @@ function openPasswordModal() {
     const confirmPassword = String(fd.get('confirmPassword') || '');
     const user = BookApp.currentUser();
 
-    if (currentPassword !== user.password) {
-      BookApp.toast('รหัสผ่านปัจจุบันไม่ถูกต้อง');
-      return;
-    }
     if (newPassword.length < 6) {
       BookApp.toast('รหัสผ่านใหม่ต้องมีอย่างน้อย 6 ตัวอักษร');
       return;
@@ -108,11 +104,31 @@ function openPasswordModal() {
       return;
     }
 
-    const updated = { ...user, password: newPassword };
-    BookApp.saveUsers(BookApp.users().map(u => u.id === user.id ? updated : u));
-    BookApp.setCurrentUser(updated);
-    BookApp.toast('เปลี่ยนรหัสผ่านสำเร็จ');
-    closeModal();
+    try {
+      const response = await fetch(`http://localhost:3000/api/users/${encodeURIComponent(user.id)}/password`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ currentPassword, newPassword })
+      });
+      const data = await response.json().catch(() => null);
+
+      if (!response.ok || !data?.ok) {
+        throw new Error(data?.message || 'ไม่สามารถเปลี่ยนรหัสผ่านได้');
+      }
+
+      const updated = { ...user, password: newPassword };
+      const existingUsers = BookApp.users();
+      const nextUsers = existingUsers.some(u => String(u.id) === String(user.id))
+        ? existingUsers.map(u => String(u.id) === String(user.id) ? updated : u)
+        : [...existingUsers, updated];
+
+      BookApp.saveUsers(nextUsers);
+      BookApp.setCurrentUser(updated);
+      BookApp.toast('เปลี่ยนรหัสผ่านสำเร็จ');
+      closeModal();
+    } catch (error) {
+      BookApp.toast(error.message || 'ไม่สามารถเปลี่ยนรหัสผ่านได้');
+    }
   };
 }
 
